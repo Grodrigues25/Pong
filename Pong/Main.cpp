@@ -5,7 +5,12 @@
 // TODO: Allign scoreboard to the center -> DONE
 // TODO: Draw center line -> DONE
 // TODO: Add functionality to the different bars -> DONE
-// TODO: Create the ball
+// TODO: Create the ball -> DONE
+// TODO: Make the ball move in a random direction to start
+// TODO: Make the ball bounce off the upper and lower limits of the screen
+// TODO: Make the ball bounce off the players' bars
+// TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal)
+// TODO: Make the ball reset into the middle of the screen and start a new round
 // TODO: Make each bar independent -> DONE
 // TODO: Research threads for paralel processing of inputs of the different bars
 
