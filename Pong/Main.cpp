@@ -4,24 +4,24 @@
 // TODO: Place the bars equally spaced from the borders of the screen -> DONE
 // TODO: Allign scoreboard to the center -> DONE
 // TODO: Draw center line -> DONE
-// TODO: Add functionality to the different bars
+// TODO: Add functionality to the different bars -> DONE
 // TODO: Create the ball
-// TODO: Make each bar independent
+// TODO: Make each bar independent -> DONE
 // TODO: Research threads for paralel processing of inputs of the different bars
 
 
-void drawPlayerBar(sf::RenderWindow& window) {
+void drawPlayerBar(sf::RenderWindow& window, int player1Coords[2], int player2Coords[2]) {
 
     int length = 100;
 
     sf::RectangleShape playerBar(sf::Vector2f(length, 12.f));
     playerBar.setFillColor(sf::Color::Blue);
-    playerBar.setPosition(150, 590);
+    playerBar.setPosition(player1Coords[0], player1Coords[1]);
     playerBar.rotate(-90.f);
     
     sf::RectangleShape playerBar2(sf::Vector2f(length, 12.f));
     playerBar2.setFillColor(sf::Color::Red);
-    playerBar2.setPosition(1770, 590);
+    playerBar2.setPosition(player2Coords[0], player2Coords[1]);
     playerBar2.rotate(-90.f);
 
     window.draw(playerBar);
@@ -89,8 +89,8 @@ int main() {
     window.setVerticalSyncEnabled(true);
 
     //GAME DATA STRUCTURES
-    int player1BarCoords[2];
-    int player2BarCoords[2];
+    int player1BarCoords[2] = { 150,590 };
+    int player2BarCoords[2] = { 1770, 590 };
     int ballCoords[2];
     int score[2] = { 0,0 };
 
@@ -100,22 +100,40 @@ int main() {
 
         while (window.pollEvent(event)) {
             switch (event.type) {
-            case sf::Event::Closed:
-                window.close();
-                break;
+                case sf::Event::Closed:
+                    window.close();
+                    break;
 
-            case sf::Event::KeyPressed:
-                switch (event.KeyPressed == sf::Keyboard::Up)
-                break;
+                case sf::Event::KeyPressed:
+
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+                        player1BarCoords[1] -= 25;
+                    }
+
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+                        player1BarCoords[1] += 25;
+                    }
+
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+                        player2BarCoords[1] -= 25;
+                    }
+
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                        player2BarCoords[1] += 25;
+                    }
+                    break;
             }
+            
         }
+
+
 
         window.clear();
 
         window.draw(background);
-        drawPlayerBar(window);
+        //drawPlayerBar(window);
 
-        drawPlayerBar(window);
+        drawPlayerBar(window, player1BarCoords, player2BarCoords);
 
         drawScoreAndCenterLine(window, score);
         
