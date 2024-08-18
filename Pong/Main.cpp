@@ -72,6 +72,14 @@ void drawScoreAndCenterLine(sf::RenderWindow& window, int score[2]) {
 
 }
 
+void drawBall(sf::RenderWindow& window, int ballCoords[2]) {
+
+    sf::RectangleShape ball(sf::Vector2f(20, 20));
+    ball.setFillColor(sf::Color::White);
+    ball.setPosition(ballCoords[0], ballCoords[1]);
+
+    window.draw(ball);
+}
 
 int main() {
 
@@ -89,9 +97,9 @@ int main() {
     window.setVerticalSyncEnabled(true);
 
     //GAME DATA STRUCTURES
-    int player1BarCoords[2] = { 150,590 };
+    int player1BarCoords[2] = { 150, 590 };
     int player2BarCoords[2] = { 1770, 590 };
-    int ballCoords[2];
+    int ballCoords[2] = { 960, 540 };
     int score[2] = { 0,0 };
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
@@ -107,19 +115,19 @@ int main() {
                 case sf::Event::KeyPressed:
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-                        player1BarCoords[1] -= 25;
+                        player1BarCoords[1] - 125 < 0 ? player1BarCoords[1] = 100 : player1BarCoords[1] -= 25;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-                        player1BarCoords[1] += 25;
+                        player1BarCoords[1] + 25 > 1080 ? player1BarCoords[1] = 1080 : player1BarCoords[1] += 25;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-                        player2BarCoords[1] -= 25;
+                        player2BarCoords[1] - 125 < 0 ? player2BarCoords[1] = 100 : player2BarCoords[1] -= 25;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-                        player2BarCoords[1] += 25;
+                        player2BarCoords[1] + 25 > 1080 ? player2BarCoords[1] = 1080 : player2BarCoords[1] += 25;
                     }
                     break;
             }
@@ -127,15 +135,15 @@ int main() {
         }
 
 
-
         window.clear();
 
         window.draw(background);
-        //drawPlayerBar(window);
 
         drawPlayerBar(window, player1BarCoords, player2BarCoords);
 
         drawScoreAndCenterLine(window, score);
+
+        drawBall(window, ballCoords);
         
         window.display();
 
