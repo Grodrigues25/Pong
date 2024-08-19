@@ -1,6 +1,8 @@
 #include <iostream>
 #include "SFML/Graphics.hpp"
 
+using namespace std;
+
 // TODO: Place the bars equally spaced from the borders of the screen -> DONE
 // TODO: Allign scoreboard to the center -> DONE
 // TODO: Draw center line -> DONE
@@ -73,17 +75,40 @@ void drawScoreAndCenterLine(sf::RenderWindow& window, int score[2]) {
 
     window.draw(player1Score);
     window.draw(player2Score);
-    
 
 }
 
-void drawBall(sf::RenderWindow& window, int ballCoords[2]) {
+int* drawBall(sf::RenderWindow& window, int ballCoords[2], sf::Time time, int ballDirections[2]) {
 
     sf::RectangleShape ball(sf::Vector2f(20, 20));
     ball.setFillColor(sf::Color::White);
+
+    int* movementDirections = new int[2];
+
+    float speed = 200;
+
+    if (ballCoords[0] + speed * ballDirections[0] * time.asSeconds() < 1900 && ballCoords[0] + speed * ballDirections[0] * time.asSeconds() > 0){
+        ballCoords[0] += speed * ballDirections[0] * time.asSeconds();
+    }
+    else {
+        ballDirections[0] = -ballDirections[0];
+    }
+
+    if (ballCoords[1] + speed * ballDirections[1] * time.asSeconds() < 1060 && ballCoords[1] + speed * ballDirections[1] * time.asSeconds() > 0) {
+        ballCoords[1] += speed * time.asSeconds();
+    }
+    else {
+        ballDirections[1] = -ballDirections[1];
+    }
+
     ball.setPosition(ballCoords[0], ballCoords[1]);
 
     window.draw(ball);
+
+    movementDirections[0] = ballDirections[0];
+    movementDirections[1] = ballDirections[1];
+    
+    return movementDirections;
 }
 
 int main() {
@@ -104,8 +129,10 @@ int main() {
     //GAME DATA STRUCTURES
     int player1BarCoords[2] = { 150, 590 };
     int player2BarCoords[2] = { 1770, 590 };
-    int ballCoords[2] = { 960, 540 };
+    int ballCoords[4] = { 960, 540 , 1, 1};
     int score[2] = { 0,0 };
+    sf::Clock clock;
+    int* ballDirections = 0;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
@@ -139,7 +166,6 @@ int main() {
             
         }
 
-
         window.clear();
 
         window.draw(background);
@@ -148,7 +174,9 @@ int main() {
 
         drawScoreAndCenterLine(window, score);
 
-        drawBall(window, ballCoords);
+        sf::Time elapsed = clock.restart();
+
+        ballDirections = drawBall(window, ballCoords, elapsed, ballDirections);
         
         window.display();
 
