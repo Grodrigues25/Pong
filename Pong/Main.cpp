@@ -8,8 +8,8 @@ using namespace std;
 // TODO: Draw center line -> DONE
 // TODO: Add functionality to the different bars -> DONE
 // TODO: Create the ball -> DONE
-// TODO: Make the ball move in a random direction to start
-// TODO: Make the ball bounce off the upper and lower limits of the screen
+// TODO: Make the ball move in a random direction to start -> DONE
+// TODO: Make the ball bounce off the upper and lower limits of the screen -> DONE
 // TODO: Make the ball bounce off the players' bars
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal)
 // TODO: Make the ball reset into the middle of the screen and start a new round
@@ -83,28 +83,16 @@ int* drawBall(sf::RenderWindow& window, int ballCoords[2], sf::Time time, int ba
     sf::RectangleShape ball(sf::Vector2f(20, 20));
     ball.setFillColor(sf::Color::White);
 
-    int* movementDirections = new int[2];
-
     float speed = 200;
 
-    if (ballCoords[0] + speed * ballDirections[0] * time.asSeconds() < 1900 && ballCoords[0] + speed * ballDirections[0] * time.asSeconds() > 0){
-        ballCoords[0] += speed * ballDirections[0] * time.asSeconds();
-    }
-    else {
-        ballDirections[0] = -ballDirections[0];
-    }
-
-    if (ballCoords[1] + speed * ballDirections[1] * time.asSeconds() < 1060 && ballCoords[1] + speed * ballDirections[1] * time.asSeconds() > 0) {
-        ballCoords[1] += speed * time.asSeconds();
-    }
-    else {
-        ballDirections[1] = -ballDirections[1];
-    }
+    ballCoords[0] + speed * ballDirections[0] * time.asSeconds() <= 1900 && ballCoords[0] + speed * ballDirections[0] * time.asSeconds() >= 0 ? ballCoords[0] += speed * ballDirections[0] * time.asSeconds() : ballDirections[0] = -ballDirections[0];
+    ballCoords[1] + speed * ballDirections[1] * time.asSeconds() <= 1060 && ballCoords[1] + speed * ballDirections[1] * time.asSeconds() >= 0 ? ballCoords[1] += speed * ballDirections[1] * time.asSeconds() : ballDirections[1] = -ballDirections[1];
 
     ball.setPosition(ballCoords[0], ballCoords[1]);
 
     window.draw(ball);
 
+    int* movementDirections = new int[2];
     movementDirections[0] = ballDirections[0];
     movementDirections[1] = ballDirections[1];
     
@@ -129,10 +117,11 @@ int main() {
     //GAME DATA STRUCTURES
     int player1BarCoords[2] = { 150, 590 };
     int player2BarCoords[2] = { 1770, 590 };
-    int ballCoords[4] = { 960, 540 , 1, 1};
+    int ballCoords[2] = { 960, 540 };
     int score[2] = { 0,0 };
     sf::Clock clock;
-    int* ballDirections = 0;
+    int initDirections[2] = { 1,1 };
+    int* ballDirections = initDirections;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
