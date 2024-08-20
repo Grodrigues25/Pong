@@ -17,18 +17,18 @@ using namespace std;
 // TODO: Research threads for paralel processing of inputs of the different bars
 
 
-void drawPlayerBar(sf::RenderWindow& window, int player1Coords[2], int player2Coords[2]) {
+void drawPlayerBar(sf::RenderWindow& window, int playersCoords[4]) {
 
     int length = 100;
 
     sf::RectangleShape playerBar(sf::Vector2f(length, 12.f));
     playerBar.setFillColor(sf::Color::Blue);
-    playerBar.setPosition(player1Coords[0], player1Coords[1]);
+    playerBar.setPosition(playersCoords[0], playersCoords[1]);
     playerBar.rotate(-90.f);
     
     sf::RectangleShape playerBar2(sf::Vector2f(length, 12.f));
     playerBar2.setFillColor(sf::Color::Red);
-    playerBar2.setPosition(player2Coords[0], player2Coords[1]);
+    playerBar2.setPosition(playersCoords[2], playersCoords[3]);
     playerBar2.rotate(-90.f);
 
     window.draw(playerBar);
@@ -99,6 +99,10 @@ int* drawBall(sf::RenderWindow& window, int ballCoords[2], sf::Time time, int ba
     return movementDirections;
 }
 
+void checkBallBarCollision() {
+
+}
+
 int main() {
 
     // SETTINGS
@@ -115,8 +119,7 @@ int main() {
     window.setVerticalSyncEnabled(true);
 
     //GAME DATA STRUCTURES
-    int player1BarCoords[2] = { 150, 590 };
-    int player2BarCoords[2] = { 1770, 590 };
+    int playersBarCoords[4] = { 150, 590, 1770, 590 };
     int ballCoords[2] = { 960, 540 };
     int score[2] = { 0,0 };
     sf::Clock clock;
@@ -136,19 +139,19 @@ int main() {
                 case sf::Event::KeyPressed:
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-                        player1BarCoords[1] - 125 < 0 ? player1BarCoords[1] = 100 : player1BarCoords[1] -= 25;
+                        playersBarCoords[1] - 125 < 0 ? playersBarCoords[1] = 100 : playersBarCoords[1] -= 25;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-                        player1BarCoords[1] + 25 > 1080 ? player1BarCoords[1] = 1080 : player1BarCoords[1] += 25;
+                        playersBarCoords[1] + 25 > 1080 ? playersBarCoords[1] = 1080 : playersBarCoords[1] += 25;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-                        player2BarCoords[1] - 125 < 0 ? player2BarCoords[1] = 100 : player2BarCoords[1] -= 25;
+                        playersBarCoords[3] - 125 < 0 ? playersBarCoords[3] = 100 : playersBarCoords[3] -= 25;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-                        player2BarCoords[1] + 25 > 1080 ? player2BarCoords[1] = 1080 : player2BarCoords[1] += 25;
+                        playersBarCoords[3] + 25 > 1080 ? playersBarCoords[3] = 1080 : playersBarCoords[3] += 25;
                     }
                     break;
             }
@@ -159,7 +162,7 @@ int main() {
 
         window.draw(background);
 
-        drawPlayerBar(window, player1BarCoords, player2BarCoords);
+        drawPlayerBar(window, playersBarCoords);
 
         drawScoreAndCenterLine(window, score);
 
