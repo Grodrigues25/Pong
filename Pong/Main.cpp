@@ -10,14 +10,16 @@ using namespace std;
 // TODO: Create the ball -> DONE
 // TODO: Make the ball move in a random direction to start -> DONE
 // TODO: Make the ball bounce off the upper and lower limits of the screen -> DONE
-// TODO: Make the ball bounce off the players' bars
+// TODO: Change from arrays to vectors -> DONE
+// TODO: Make the ball bounce off the players' bars -> IN PROGRESS
+// TODO: Check how the events work for inputs because if I move the bar too close to the ball colliding the ball goes through the bar
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal)
 // TODO: Make the ball reset into the middle of the screen and start a new round
 // TODO: Make each bar independent -> DONE
 // TODO: Research threads for paralel processing of inputs of the different bars
 
 
-void drawPlayerBar(sf::RenderWindow& window, int playersCoords[4]) {
+void drawPlayerBar(sf::RenderWindow& window, vector<int> playersCoords) {
 
     int length = 100;
 
@@ -78,7 +80,7 @@ void drawScoreAndCenterLine(sf::RenderWindow& window, int score[2]) {
 
 }
 
-int* drawBall(sf::RenderWindow& window, int ballCoords[4], sf::Time time) {
+vector<int> drawBall(sf::RenderWindow& window, vector<int> ballCoords, sf::Time time) {
 
     sf::RectangleShape ball(sf::Vector2f(20, 20));
     ball.setFillColor(sf::Color::White);
@@ -91,18 +93,23 @@ int* drawBall(sf::RenderWindow& window, int ballCoords[4], sf::Time time) {
     ball.setPosition(ballCoords[0], ballCoords[1]);
 
     window.draw(ball);
-
-    int* ballDirections = new int[4];
-    ballDirections[0] = ballCoords[0];
-    ballDirections[1] = ballCoords[1];
-    ballDirections[2] = ballCoords[2];
-    ballDirections[3] = ballCoords[3];
     
-    return ballDirections;
+    return ballCoords;
 }
 
-void checkBallBarCollision(int ballDirections[4], int playersBarCoords[4]) {
+vector<int> checkBallBarCollision(vector<int> ballDirections, vector<int> playersBarCoords) {
 
+    // Player 1 Collision
+    if (ballDirections[0] == playersBarCoords[0]+13 && (ballDirections[1] >= playersBarCoords[1] - 119 && ballDirections[1] <= playersBarCoords[1])) {
+        ballDirections[2] = -ballDirections[2];
+    }
+
+    // Player 2 Collision
+    if (ballDirections[0] == playersBarCoords[2]-20 && (ballDirections[1] >= playersBarCoords[3] - 119 && ballDirections[1] <= playersBarCoords[3])) {
+        ballDirections[2] = -ballDirections[2];
+    }
+
+    return ballDirections;
 }
 
 int main() {
@@ -121,11 +128,10 @@ int main() {
     window.setVerticalSyncEnabled(true);
 
     //GAME DATA STRUCTURES
-    int playersBarCoords[4] = { 150, 590, 1770, 590 };
-    int ballCoords[4] = { 960, 540, 1, 1 };
+    vector<int> playersBarCoords = { 150, 590, 1770, 590 };
+    vector<int> ballCoords = { 960, 540, 1, 1 };
     int score[2] = { 0,0 };
     sf::Clock clock;
-    int* ballDirections = ballCoords;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
@@ -140,19 +146,19 @@ int main() {
                 case sf::Event::KeyPressed:
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-                        playersBarCoords[1] - 125 < 0 ? playersBarCoords[1] = 100 : playersBarCoords[1] -= 25;
+                        playersBarCoords[1] - 150 < 0 ? playersBarCoords[1] = 100 : playersBarCoords[1] -= 50;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-                        playersBarCoords[1] + 25 > 1080 ? playersBarCoords[1] = 1080 : playersBarCoords[1] += 25;
+                        playersBarCoords[1] + 50 > 1080 ? playersBarCoords[1] = 1080 : playersBarCoords[1] += 50;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-                        playersBarCoords[3] - 125 < 0 ? playersBarCoords[3] = 100 : playersBarCoords[3] -= 25;
+                        playersBarCoords[3] - 150 < 0 ? playersBarCoords[3] = 100 : playersBarCoords[3] -= 50;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-                        playersBarCoords[3] + 25 > 1080 ? playersBarCoords[3] = 1080 : playersBarCoords[3] += 25;
+                        playersBarCoords[3] + 50 > 1080 ? playersBarCoords[3] = 1080 : playersBarCoords[3] += 50;
                     }
                     break;
             }
@@ -169,8 +175,10 @@ int main() {
 
         sf::Time elapsed = clock.restart();
 
-        ballDirections = drawBall(window, ballCoords, elapsed);
-        
+        ballCoords = checkBallBarCollision(ballCoords, playersBarCoords);
+
+        ballCoords = drawBall(window, ballCoords, elapsed);
+
         window.display();
 
     }
