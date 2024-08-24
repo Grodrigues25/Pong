@@ -12,6 +12,7 @@ using namespace std;
 // TODO: Make the ball bounce off the upper and lower limits of the screen -> DONE
 // TODO: Change from arrays to vectors -> DONE
 // TODO: Make the ball bounce off the players' bars -> IN PROGRESS
+// TODO: Refactor code to make colision work with https://en.sfml-dev.org/forums/index.php?topic=5704.0; https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1RectangleShape.php; https://stackoverflow.com/questions/70502500/whats-the-difference-between-getlocalbounds-and-getglobalbounds-in-sfml-c
 // TODO: Check how the events work for inputs because if I move the bar too close to the ball colliding the ball goes through the bar
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal)
 // TODO: Make the ball reset into the middle of the screen and start a new round
@@ -100,8 +101,14 @@ vector<int> drawBall(sf::RenderWindow& window, vector<int> ballCoords, sf::Time 
 vector<int> checkBallBarCollision(vector<int> ballDirections, vector<int> playersBarCoords) {
 
     // Player 1 Collision
-    if (ballDirections[0] == playersBarCoords[0]+13 && (ballDirections[1] >= playersBarCoords[1] - 119 && ballDirections[1] <= playersBarCoords[1])) {
+    if (ballDirections[0] == playersBarCoords[0] + 15 && (ballDirections[1] >= playersBarCoords[1] - 121 && ballDirections[1] <= playersBarCoords[1])) {
         ballDirections[2] = -ballDirections[2];
+    }
+    if ((ballDirections[0] >= playersBarCoords[0] && ballDirections[0] <= playersBarCoords[0] + 12) && ballDirections[1] + 20 == playersBarCoords[1] - 100) {
+        ballDirections[3] = -ballDirections[3];
+    }
+    if ((ballDirections[0] >= playersBarCoords[0] && ballDirections[0] <= playersBarCoords[0] + 12) && ballDirections[1] == playersBarCoords[1]) {
+        ballDirections[3] = -ballDirections[3];
     }
 
     // Player 2 Collision
