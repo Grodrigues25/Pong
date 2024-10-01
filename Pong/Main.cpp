@@ -24,12 +24,12 @@ void drawPlayerBar(sf::RenderWindow& window, vector<int> playersCoords) {
 
     int length = 100;
 
-    sf::RectangleShape playerBar(sf::Vector2f(length, 12.f));
+    sf::RectangleShape playerBar(sf::Vector2f(length, 20.f));
     playerBar.setFillColor(sf::Color::Blue);
     playerBar.setPosition(playersCoords[0], playersCoords[1]);
     playerBar.rotate(-90.f);
     
-    sf::RectangleShape playerBar2(sf::Vector2f(length, 12.f));
+    sf::RectangleShape playerBar2(sf::Vector2f(length, 20.f));
     playerBar2.setFillColor(sf::Color::Red);
     playerBar2.setPosition(playersCoords[2], playersCoords[3]);
     playerBar2.rotate(-90.f);
@@ -81,42 +81,31 @@ void drawScoreAndCenterLine(sf::RenderWindow& window, int score[2]) {
 
 }
 
-vector<int> drawBall(sf::RenderWindow& window, vector<int> ballCoords, sf::Time time) {
+void drawBall(sf::RenderWindow& window, vector<int> ballCoords, bool colision) {
 
-    sf::RectangleShape ball(sf::Vector2f(20, 20));
+    sf::RectangleShape ball(sf::Vector2f(12, 12));
+    ball.setPosition(ballCoords[0], ballCoords[1]);
     ball.setFillColor(sf::Color::White);
+
+    if (colision) {cout << "Colision happened!" << endl;}
+
+    window.draw(ball);
+}
+
+
+vector<int> ballMovement(vector<int> ballCoords, sf::Time time) {
 
     float speed = 200;
 
     ballCoords[0] + speed * ballCoords[2] * time.asSeconds() <= 1900 && ballCoords[0] + speed * ballCoords[2] * time.asSeconds() >= 0 ? ballCoords[0] += speed * ballCoords[2] * time.asSeconds() : ballCoords[2] = -ballCoords[2];
-    ballCoords[1] + speed * ballCoords[3] * time.asSeconds() <= 1060 && ballCoords[1] + speed * ballCoords[3] * time.asSeconds() >= 0 ? ballCoords[1] += speed * ballCoords[3] * time.asSeconds() : ballCoords[3] = -ballCoords[3];
-
-    ball.setPosition(ballCoords[0], ballCoords[1]);
-
-    window.draw(ball);
+    ballCoords[1] + speed * ballCoords[3] * time.asSeconds() <= 1060 && ballCoords[1] + speed * ballCoords[3] * time.asSeconds() >= 0 ? ballCoords[1] += speed * ballCoords[3] * time.asSeconds() : ballCoords[3] = -ballCoords[3];    
     
     return ballCoords;
 }
 
-vector<int> checkBallBarCollision(vector<int> ballDirections, vector<int> playersBarCoords) {
+bool ballBarCollision(vector<int> ballDirections, vector<int> playersBarCoords) {
 
-    // Player 1 Collision
-    if (ballDirections[0] == playersBarCoords[0] + 15 && (ballDirections[1] >= playersBarCoords[1] - 121 && ballDirections[1] <= playersBarCoords[1])) {
-        ballDirections[2] = -ballDirections[2];
-    }
-    if ((ballDirections[0] >= playersBarCoords[0] && ballDirections[0] <= playersBarCoords[0] + 12) && ballDirections[1] + 20 == playersBarCoords[1] - 100) {
-        ballDirections[3] = -ballDirections[3];
-    }
-    if ((ballDirections[0] >= playersBarCoords[0] && ballDirections[0] <= playersBarCoords[0] + 12) && ballDirections[1] == playersBarCoords[1]) {
-        ballDirections[3] = -ballDirections[3];
-    }
-
-    // Player 2 Collision
-    if (ballDirections[0] == playersBarCoords[2]-20 && (ballDirections[1] >= playersBarCoords[3] - 119 && ballDirections[1] <= playersBarCoords[3])) {
-        ballDirections[2] = -ballDirections[2];
-    }
-
-    return ballDirections;
+    return playersBarCoords[0] < ballDirections[0]+12 && playersBarCoords[0]+20 > ballDirections[0] && playersBarCoords[1]-100 < ballDirections[1]+12 && playersBarCoords[1] > ballDirections[1];
 }
 
 int main() {
@@ -139,6 +128,8 @@ int main() {
     vector<int> ballCoords = { 960, 540, 1, 1 };
     int score[2] = { 0,0 };
     sf::Clock clock;
+    bool colided;
+    float delay = 0;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
@@ -172,19 +163,22 @@ int main() {
             
         }
 
-        window.clear();
+        delay += clock.getElapsedTime().asSeconds();
+        sf::Time elapsed = clock.restart();
 
+        ballCoords = ballMovement(ballCoords, elapsed);
+
+        colided = ballBarCollision(ballCoords, playersBarCoords);
+        if (colided && delay > 1) { ballCoords[2] = -ballCoords[2]; delay = 0; }
+
+        window.clear();
         window.draw(background);
 
         drawPlayerBar(window, playersBarCoords);
 
         drawScoreAndCenterLine(window, score);
 
-        sf::Time elapsed = clock.restart();
-
-        ballCoords = checkBallBarCollision(ballCoords, playersBarCoords);
-
-        ballCoords = drawBall(window, ballCoords, elapsed);
+        drawBall(window, ballCoords, colided);
 
         window.display();
 
