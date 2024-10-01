@@ -11,9 +11,8 @@ using namespace std;
 // TODO: Make the ball move in a random direction to start -> DONE
 // TODO: Make the ball bounce off the upper and lower limits of the screen -> DONE
 // TODO: Change from arrays to vectors -> DONE
-// TODO: Make the ball bounce off the players' bars -> IN PROGRESS
-// TODO: Refactor code to make colision work with https://en.sfml-dev.org/forums/index.php?topic=5704.0; https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1RectangleShape.php; https://stackoverflow.com/questions/70502500/whats-the-difference-between-getlocalbounds-and-getglobalbounds-in-sfml-c
-// TODO: Check how the events work for inputs because if I move the bar too close to the ball colliding the ball goes through the bar
+// TODO: Make the ball bounce off the players' bars -> IN PROGRESS -> Left bar remaining
+// TODO: Check how the events work for inputs because if I move the bar too close to the ball colliding the ball goes through the bar -> DONE
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal)
 // TODO: Make the ball reset into the middle of the screen and start a new round
 // TODO: Make each bar independent -> DONE
