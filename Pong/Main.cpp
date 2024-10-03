@@ -11,7 +11,7 @@ using namespace std;
 // TODO: Make the ball move in a random direction to start -> DONE
 // TODO: Make the ball bounce off the upper and lower limits of the screen -> DONE
 // TODO: Change from arrays to vectors -> DONE
-// TODO: Make the ball bounce off the players' bars -> IN PROGRESS -> Left bar remaining
+// TODO: Make the ball bounce off the players' bars -> DONE
 // TODO: Check how the events work for inputs because if I move the bar too close to the ball colliding the ball goes through the bar -> DONE
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal)
 // TODO: Make the ball reset into the middle of the screen and start a new round
@@ -19,18 +19,18 @@ using namespace std;
 // TODO: Research threads for paralel processing of inputs of the different bars
 
 
-void drawPlayerBar(sf::RenderWindow& window, vector<int> playersCoords) {
+void drawPlayerBar(sf::RenderWindow& window, vector<int> player1Coords, vector<int> player2Coords) {
 
     int length = 100;
 
     sf::RectangleShape playerBar(sf::Vector2f(length, 20.f));
     playerBar.setFillColor(sf::Color::Blue);
-    playerBar.setPosition(playersCoords[0], playersCoords[1]);
+    playerBar.setPosition(player1Coords[0], player1Coords[1]);
     playerBar.rotate(-90.f);
     
     sf::RectangleShape playerBar2(sf::Vector2f(length, 20.f));
     playerBar2.setFillColor(sf::Color::Red);
-    playerBar2.setPosition(playersCoords[2], playersCoords[3]);
+    playerBar2.setPosition(player2Coords[0], player2Coords[1]);
     playerBar2.rotate(-90.f);
 
     window.draw(playerBar);
@@ -80,13 +80,14 @@ void drawScoreAndCenterLine(sf::RenderWindow& window, int score[2]) {
 
 }
 
-void drawBall(sf::RenderWindow& window, vector<int> ballCoords, bool colision) {
+void drawBall(sf::RenderWindow& window, vector<int> ballCoords, bool colision1, bool colision2) {
 
     sf::RectangleShape ball(sf::Vector2f(12, 12));
     ball.setPosition(ballCoords[0], ballCoords[1]);
     ball.setFillColor(sf::Color::White);
 
-    if (colision) {cout << "Colision happened!" << endl;}
+    if (colision1) {cout << "Colision Left happened!" << endl;}
+    if (colision2) { cout << "Colision Right happened!" << endl; }
 
     window.draw(ball);
 }
@@ -123,12 +124,14 @@ int main() {
     window.setVerticalSyncEnabled(true);
 
     //GAME DATA STRUCTURES
-    vector<int> playersBarCoords = { 150, 590, 1770, 590 };
+    vector<int> player1BarCoords = { 150, 590 };
+    vector<int> player2BarCoords = { 1770, 590 };
     vector<int> ballCoords = { 960, 540, 1, 1 };
     int score[2] = { 0,0 };
     sf::Clock clock;
-    bool colided;
-    float delay = 0;
+    bool bColided1;
+    bool bColided2;
+    float colisionDelay = 0;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
@@ -143,41 +146,43 @@ int main() {
                 case sf::Event::KeyPressed:
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-                        playersBarCoords[1] - 150 < 0 ? playersBarCoords[1] = 100 : playersBarCoords[1] -= 50;
+                        player1BarCoords[1] - 150 < 0 ? player1BarCoords[1] = 100 : player1BarCoords[1] -= 50;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-                        playersBarCoords[1] + 50 > 1080 ? playersBarCoords[1] = 1080 : playersBarCoords[1] += 50;
+                        player1BarCoords[1] + 50 > 1080 ? player1BarCoords[1] = 1080 : player1BarCoords[1] += 50;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-                        playersBarCoords[3] - 150 < 0 ? playersBarCoords[3] = 100 : playersBarCoords[3] -= 50;
+                        player2BarCoords[1] - 150 < 0 ? player2BarCoords[1] = 100 : player2BarCoords[1] -= 50;
                     }
 
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-                        playersBarCoords[3] + 50 > 1080 ? playersBarCoords[3] = 1080 : playersBarCoords[3] += 50;
+                        player2BarCoords[1] + 50 > 1080 ? player2BarCoords[1] = 1080 : player2BarCoords[1] += 50;
                     }
                     break;
             }
             
         }
 
-        delay += clock.getElapsedTime().asSeconds();
+        colisionDelay += clock.getElapsedTime().asSeconds();
         sf::Time elapsed = clock.restart();
 
         ballCoords = ballMovement(ballCoords, elapsed);
 
-        colided = ballBarCollision(ballCoords, playersBarCoords);
-        if (colided && delay > 1) { ballCoords[2] = -ballCoords[2]; delay = 0; }
+        bColided1 = ballBarCollision(ballCoords, player1BarCoords);
+        bColided2 = ballBarCollision(ballCoords, player2BarCoords);
+        if ((bColided1 || bColided2) && colisionDelay > 1) { ballCoords[2] = -ballCoords[2]; colisionDelay = 0; }
+
 
         window.clear();
         window.draw(background);
 
-        drawPlayerBar(window, playersBarCoords);
+        drawPlayerBar(window, player1BarCoords, player2BarCoords);
 
         drawScoreAndCenterLine(window, score);
 
-        drawBall(window, ballCoords, colided);
+        drawBall(window, ballCoords, bColided1, bColided2);
 
         window.display();
 
