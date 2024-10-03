@@ -97,7 +97,18 @@ vector<int> ballMovement(vector<int> ballCoords, sf::Time time) {
 
     float speed = 200;
 
-    ballCoords[0] + speed * ballCoords[2] * time.asSeconds() <= 1900 && ballCoords[0] + speed * ballCoords[2] * time.asSeconds() >= 0 ? ballCoords[0] += speed * ballCoords[2] * time.asSeconds() : ballCoords[2] = -ballCoords[2];
+    // Horizontal colision checks
+    if (ballCoords[0] + speed * ballCoords[2] * time.asSeconds() >= 1900) { 
+        ballCoords[2] = 2000;
+    }
+    else if (ballCoords[0] + speed * ballCoords[2] * time.asSeconds() <= 0) {
+        ballCoords[2] = -100;
+    }
+    else {
+        ballCoords[0] += speed * ballCoords[2] * time.asSeconds();
+    }
+
+    // TOP and BOTTOM colision checks
     ballCoords[1] + speed * ballCoords[3] * time.asSeconds() <= 1060 && ballCoords[1] + speed * ballCoords[3] * time.asSeconds() >= 0 ? ballCoords[1] += speed * ballCoords[3] * time.asSeconds() : ballCoords[3] = -ballCoords[3];    
     
     return ballCoords;
@@ -170,6 +181,18 @@ int main() {
 
         ballCoords = ballMovement(ballCoords, elapsed);
 
+        // Goal Scored Checks
+        if (ballCoords[2] == 2000) { 
+            score[1] += 1; 
+            ballCoords = { 960, 540, 1, 1 };
+        }
+
+        if (ballCoords[2] == -100) {
+            score[0] += 1;
+            ballCoords = { 960, 540, 1, 1 };
+        }
+
+        //Colision Checks
         bColided1 = ballBarCollision(ballCoords, player1BarCoords);
         bColided2 = ballBarCollision(ballCoords, player2BarCoords);
         if ((bColided1 || bColided2) && colisionDelay > 1) { ballCoords[2] = -ballCoords[2]; colisionDelay = 0; }
