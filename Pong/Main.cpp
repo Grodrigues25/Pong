@@ -131,7 +131,7 @@ int main() {
     sf::Clock clock;
     bool bColided1;
     bool bColided2;
-    float delay = 0;
+    float colisionDelay = 0;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
@@ -165,14 +165,14 @@ int main() {
             
         }
 
-        delay += clock.getElapsedTime().asSeconds();
+        colisionDelay += clock.getElapsedTime().asSeconds();
         sf::Time elapsed = clock.restart();
 
         ballCoords = ballMovement(ballCoords, elapsed);
 
         bColided1 = ballBarCollision(ballCoords, player1BarCoords);
         bColided2 = ballBarCollision(ballCoords, player2BarCoords);
-        if ((bColided1 || bColided2) && delay > 1) { ballCoords[2] = -ballCoords[2]; delay = 0; }
+        if ((bColided1 || bColided2) && colisionDelay > 1) { ballCoords[2] = -ballCoords[2]; colisionDelay = 0; }
 
 
         window.clear();
