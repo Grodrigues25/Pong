@@ -13,8 +13,8 @@ using namespace std;
 // TODO: Change from arrays to vectors -> DONE
 // TODO: Make the ball bounce off the players' bars -> DONE
 // TODO: Check how the events work for inputs because if I move the bar too close to the ball colliding the ball goes through the bar -> DONE
-// TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal)
-// TODO: Make the ball reset into the middle of the screen and start a new round
+// TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal) -> DONE
+// TODO: Make the ball reset into the middle of the screen and start a new round -> DONE
 // TODO: Make each bar independent -> DONE
 // TODO: Research threads for paralel processing of inputs of the different bars
 
