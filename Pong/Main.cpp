@@ -156,19 +156,19 @@ int main() {
 
                 case sf::Event::KeyPressed:
 
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
                         player1BarCoords[1] - 150 < 0 ? player1BarCoords[1] = 100 : player1BarCoords[1] -= 50;
                     }
 
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
                         player1BarCoords[1] + 50 > 1080 ? player1BarCoords[1] = 1080 : player1BarCoords[1] += 50;
                     }
 
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
                         player2BarCoords[1] - 150 < 0 ? player2BarCoords[1] = 100 : player2BarCoords[1] -= 50;
                     }
 
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
                         player2BarCoords[1] + 50 > 1080 ? player2BarCoords[1] = 1080 : player2BarCoords[1] += 50;
                     }
                     break;
@@ -182,31 +182,27 @@ int main() {
         ballCoords = ballMovement(ballCoords, elapsed);
 
         // Goal Scored Checks
-        if (ballCoords[2] == 2000) { 
+        if (ballCoords[2] == -100) { 
             score[1] += 1; 
             ballCoords = { 960, 540, 1, 1 };
         }
 
-        if (ballCoords[2] == -100) {
+        if (ballCoords[2] == 2000) {
             score[0] += 1;
             ballCoords = { 960, 540, 1, 1 };
         }
 
-        //Colision Checks
+        // Colision Checks
         bColided1 = ballBarCollision(ballCoords, player1BarCoords);
         bColided2 = ballBarCollision(ballCoords, player2BarCoords);
         if ((bColided1 || bColided2) && colisionDelay > 1) { ballCoords[2] = -ballCoords[2]; colisionDelay = 0; }
 
-
+        // Rendering
         window.clear();
         window.draw(background);
-
         drawPlayerBar(window, player1BarCoords, player2BarCoords);
-
         drawScoreAndCenterLine(window, score);
-
         drawBall(window, ballCoords, bColided1, bColided2);
-
         window.display();
 
     }
