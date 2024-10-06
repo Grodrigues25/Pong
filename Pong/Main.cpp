@@ -1,3 +1,4 @@
+#include <numbers>
 #include <iostream>
 #include "SFML/Graphics.hpp"
 
@@ -93,30 +94,42 @@ void drawBall(sf::RenderWindow& window, vector<int> ballCoords, bool colision1, 
 }
 
 
-vector<int> ballMovement(vector<int> ballCoords, sf::Time time) {
+bool ballBarCollision(vector<int> ballDirections, vector<int> playersBarCoords) {
+
+    return playersBarCoords[0] < ballDirections[0]+12 && playersBarCoords[0]+20 > ballDirections[0] && playersBarCoords[1]-100 < ballDirections[1]+12 && playersBarCoords[1] > ballDirections[1];
+}
+
+int bounceDirectionCalculation(vector<int> ballCoords, vector<int> playerBar) {
+
+    int maxBounceAngle = (5 * std::numbers::pi)/12;
+
+    int intersect = (playerBar[1] - 50) - ballCoords[1];
+    intersect = intersect / 50;
+
+    int bounceAngle = intersect * maxBounceAngle;
+
+    return bounceAngle;
+}
+
+vector<int> ballMovement(vector<int> ballCoords, sf::Time time, int bounceAngle) {
 
     float speed = 200;
 
     // Horizontal colision checks
-    if (ballCoords[0] + speed * ballCoords[2] * time.asSeconds() >= 1900) { 
+    if (ballCoords[0] + speed * ballCoords[2] * time.asSeconds() >= 1900) {
         ballCoords[2] = 2000;
     }
     else if (ballCoords[0] + speed * ballCoords[2] * time.asSeconds() <= 0) {
         ballCoords[2] = -100;
     }
     else {
-        ballCoords[0] += speed * ballCoords[2] * time.asSeconds();
+        ballCoords[0] += speed * cos(bounceAngle) * ballCoords[2] * time.asSeconds();
     }
 
     // TOP and BOTTOM colision checks
-    ballCoords[1] + speed * ballCoords[3] * time.asSeconds() <= 1060 && ballCoords[1] + speed * ballCoords[3] * time.asSeconds() >= 0 ? ballCoords[1] += speed * ballCoords[3] * time.asSeconds() : ballCoords[3] = -ballCoords[3];    
-    
+    ballCoords[1] + speed * ballCoords[3] * time.asSeconds() <= 1060 && ballCoords[1] + speed * ballCoords[3] * time.asSeconds() >= 0 ? ballCoords[1] += speed * -sin(bounceAngle) * ballCoords[3] * time.asSeconds() : bounceAngle += std::numbers::pi;
+
     return ballCoords;
-}
-
-bool ballBarCollision(vector<int> ballDirections, vector<int> playersBarCoords) {
-
-    return playersBarCoords[0] < ballDirections[0]+12 && playersBarCoords[0]+20 > ballDirections[0] && playersBarCoords[1]-100 < ballDirections[1]+12 && playersBarCoords[1] > ballDirections[1];
 }
 
 int main() {
@@ -143,6 +156,7 @@ int main() {
     bool bColided1;
     bool bColided2;
     float colisionDelay = 0;
+    int bounceAngle = sqrt(2)/2;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
@@ -176,10 +190,10 @@ int main() {
             
         }
 
+        cout << bounceAngle << "\n";
+
         colisionDelay += clock.getElapsedTime().asSeconds();
         sf::Time elapsed = clock.restart();
-
-        ballCoords = ballMovement(ballCoords, elapsed);
 
         // Goal Scored Checks
         if (ballCoords[2] == -100) { 
@@ -195,7 +209,19 @@ int main() {
         // Colision Checks
         bColided1 = ballBarCollision(ballCoords, player1BarCoords);
         bColided2 = ballBarCollision(ballCoords, player2BarCoords);
-        if ((bColided1 || bColided2) && colisionDelay > 1) { ballCoords[2] = -ballCoords[2]; colisionDelay = 0; }
+        if (bColided1  && colisionDelay > 1) { 
+            ballCoords[2] = -ballCoords[2]; 
+            colisionDelay = 0; 
+            bounceAngle = bounceDirectionCalculation(ballCoords, player1BarCoords);
+        }
+
+        if (bColided2 && colisionDelay > 1) {
+            ballCoords[2] = -ballCoords[2];
+            colisionDelay = 0;
+            bounceAngle = bounceDirectionCalculation(ballCoords, player2BarCoords);
+        }
+
+        ballCoords = ballMovement(ballCoords, elapsed, bounceAngle);
 
         // Rendering
         window.clear();
