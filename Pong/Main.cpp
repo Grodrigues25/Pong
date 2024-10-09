@@ -17,7 +17,8 @@ using namespace std;
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal) -> DONE
 // TODO: Make the ball reset into the middle of the screen and start a new round -> DONE
 // TODO: Make each bar independent -> DONE
-// TODO: Research threads for paralel processing of inputs of the different bars
+// TODO: Set a minimum bounce angle
+// TODO: Make the starting direction and angle random
 
 
 void drawPlayerBar(sf::RenderWindow& window, vector<float> player1Coords, vector<float> player2Coords) {
@@ -117,7 +118,7 @@ vector<float> bounceDirectionCalculation(vector<float> ballCoords, vector<float>
 
 vector<float> ballMovement(vector<float> ballCoords, sf::Time time) {
 
-    float speed = 400;
+    float speed = 800;
 
     // Horizontal colision checks
     if (ballCoords[0] + speed * cos(ballCoords[2]) * time.asSeconds() >= 1900) {
@@ -142,17 +143,45 @@ vector<float> ballMovement(vector<float> ballCoords, sf::Time time) {
     return ballCoords;
 }
 
+
+void update(sf::RenderWindow& window, vector<float>& barCoords) {
+    sf::Vector2f acceleration;
+    sf::Vector2f velocity;
+
+    // adjust this at will
+    const float dAcc = 3.0f;
+
+    // set acceleration
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { acceleration.y -= dAcc; }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { acceleration.y += dAcc; }
+
+    // update velocity through acceleration
+    velocity += acceleration;
+
+    // update position through velocity
+    if (barCoords[1] + velocity.y > 1080) {
+        barCoords[1] = 1080;
+    }
+    else if (barCoords[1] + velocity.y < 100) {
+        barCoords[1] = 100;
+    }
+    else {
+        barCoords[1] += velocity.y;
+    }   
+
+    // apply damping to the velocity
+    velocity = 0.99f * velocity;
+
+};
+
 int main() {
 
     // SETTINGS
     int windowWidth = 1920;
     int windowHeight = 1080;
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
-
     //RENDER WINDOW
-    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "TicTacToe", sf::Style::Close, settings);
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "TicTacToe", sf::Style::Close);
     sf::RectangleShape background(sf::Vector2f(windowWidth, windowHeight));
     background.setFillColor(sf::Color::Black);
     window.setVerticalSyncEnabled(true);
@@ -167,38 +196,22 @@ int main() {
     vector<float> player1BarCoords = { 150, 590 };
     vector<float> player2BarCoords = { 1770, 590 };
     vector<float> ballCoords = { 960, 540, bounceAngle };
+    sf::Event event;
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
-        sf::Event event;
 
-        while (window.pollEvent(event)) {
-            switch (event.type) {
-                case sf::Event::Closed:
-                    window.close();
-                    break;
+        //while (window.pollEvent(event)) {
+        window.pollEvent(event);
 
-                case sf::Event::KeyPressed:
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-                        player1BarCoords[1] - 150 < 0 ? player1BarCoords[1] = 100 : player1BarCoords[1] -= 50;
-                    }
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-                        player1BarCoords[1] + 50 > 1080 ? player1BarCoords[1] = 1080 : player1BarCoords[1] += 50;
-                    }
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-                        player2BarCoords[1] - 150 < 0 ? player2BarCoords[1] = 100 : player2BarCoords[1] -= 50;
-                    }
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-                        player2BarCoords[1] + 50 > 1080 ? player2BarCoords[1] = 1080 : player2BarCoords[1] += 50;
-                    }
-                    break;
-            }
-            
+        switch (event.type) {
+            case sf::Event::Closed:
+                window.close();
+                break;
         }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { update(window, player1BarCoords); }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { update(window, player2BarCoords); };
 
         colisionDelay += clock.getElapsedTime().asSeconds();
         sf::Time elapsed = clock.restart();
