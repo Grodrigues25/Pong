@@ -17,7 +17,7 @@ using namespace std;
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal) -> DONE
 // TODO: Make the ball reset into the middle of the screen and start a new round -> DONE
 // TODO: Make each bar independent -> DONE
-// TODO: Set a minimum bounce angle
+// TODO: Set a minimum bounce angle -> SCRAPPED -> the issue was due to a miscalculation on the inversion of the direction of the bounce on the right bar
 // TODO: Make the starting direction and angle random
 
 
@@ -94,6 +94,35 @@ void drawBall(sf::RenderWindow& window, vector<float> ballCoords, bool colision1
     window.draw(ball);
 }
 
+void updateBarPosition(sf::RenderWindow& window, vector<float>& barCoords) {
+    sf::Vector2f acceleration;
+    sf::Vector2f velocity;
+
+    // adjust this at will
+    const float dAcc = 3.3f;
+
+    // set acceleration
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { acceleration.y -= dAcc; }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { acceleration.y += dAcc; }
+
+    // update velocity through acceleration
+    velocity += acceleration;
+
+    // update position through velocity
+    if (barCoords[1] + velocity.y > 1080) {
+        barCoords[1] = 1080;
+    }
+    else if (barCoords[1] + velocity.y < 100) {
+        barCoords[1] = 100;
+    }
+    else {
+        barCoords[1] += velocity.y;
+    }
+
+    // apply damping to the velocity
+    velocity = 0.50f * velocity;
+
+};
 
 bool ballBarCollision(vector<float> ballDirections, vector<float> playersBarCoords) {
 
@@ -104,14 +133,14 @@ vector<float> bounceDirectionCalculation(vector<float> ballCoords, vector<float>
 
     float maxBounceAngle = (5 * std::numbers::pi)/12;
 
-    float intersect = (playerBar[1] - 50) - ballCoords[1];
-    intersect = intersect / 50;
+    float intersect = (playerBar[1] - 56) - ballCoords[1];
+    intersect = intersect / 56;
 
     float bounceAngle = intersect * maxBounceAngle;
 
     ballCoords[2] = bounceAngle;
 
-    cout << (ballCoords[2] * 360) / (2 * std::numbers::pi) << "degrees\n";
+    cout << (ballCoords[2] * 360) / (2 * std::numbers::pi) << " degrees\n";
 
     return ballCoords;
 }
@@ -144,36 +173,6 @@ vector<float> ballMovement(vector<float> ballCoords, sf::Time time) {
 }
 
 
-void update(sf::RenderWindow& window, vector<float>& barCoords) {
-    sf::Vector2f acceleration;
-    sf::Vector2f velocity;
-
-    // adjust this at will
-    const float dAcc = 3.0f;
-
-    // set acceleration
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { acceleration.y -= dAcc; }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { acceleration.y += dAcc; }
-
-    // update velocity through acceleration
-    velocity += acceleration;
-
-    // update position through velocity
-    if (barCoords[1] + velocity.y > 1080) {
-        barCoords[1] = 1080;
-    }
-    else if (barCoords[1] + velocity.y < 100) {
-        barCoords[1] = 100;
-    }
-    else {
-        barCoords[1] += velocity.y;
-    }   
-
-    // apply damping to the velocity
-    velocity = 0.99f * velocity;
-
-};
-
 int main() {
 
     // SETTINGS
@@ -194,7 +193,7 @@ int main() {
     float colisionDelay = 0;
     float bounceAngle = sqrt(2)/2;
     vector<float> player1BarCoords = { 150, 590 };
-    vector<float> player2BarCoords = { 1770, 590 };
+    vector<float> player2BarCoords = { 1770, 255 };
     vector<float> ballCoords = { 960, 540, bounceAngle };
     sf::Event event;
 
@@ -210,8 +209,8 @@ int main() {
                 break;
         }
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { update(window, player1BarCoords); }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { update(window, player2BarCoords); };
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { updateBarPosition(window, player1BarCoords); }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { updateBarPosition(window, player2BarCoords); };
 
         colisionDelay += clock.getElapsedTime().asSeconds();
         sf::Time elapsed = clock.restart();
@@ -238,7 +237,7 @@ int main() {
         if (bColided2 && colisionDelay > 1) {
             colisionDelay = 0;
             ballCoords = bounceDirectionCalculation(ballCoords, player2BarCoords);
-            ballCoords[2] >= 0 ? ballCoords[2] += std::numbers::pi / 2 : ballCoords[2] -= std::numbers::pi / 2;
+            ballCoords[2] >= 0 ? ballCoords[2] = std::numbers::pi - ballCoords[2] : ballCoords[2] = -std::numbers::pi -ballCoords[2];
         }
 
         ballCoords = ballMovement(ballCoords, elapsed);
