@@ -1,5 +1,6 @@
 #include <numbers>
 #include <iostream>
+#include <random>
 #include "SFML/Graphics.hpp"
 
 using namespace std;
@@ -18,7 +19,7 @@ using namespace std;
 // TODO: Make the ball reset into the middle of the screen and start a new round -> DONE
 // TODO: Make each bar independent -> DONE
 // TODO: Set a minimum bounce angle -> SCRAPPED -> the issue was due to a miscalculation on the inversion of the direction of the bounce on the right bar
-// TODO: Make the starting direction and angle random
+// TODO: Make the starting direction and angle random -> DONE
 
 
 void drawPlayerBar(sf::RenderWindow& window, vector<float> player1Coords, vector<float> player2Coords) {
@@ -196,6 +197,8 @@ int main() {
     vector<float> player2BarCoords = { 1770, 255 };
     vector<float> ballCoords = { 960, 540, bounceAngle };
     sf::Event event;
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(-1, 1);
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
@@ -218,12 +221,19 @@ int main() {
         // Goal Scored Checks
         if (ballCoords[2] == -100) { 
             score[1] += 1; 
-            ballCoords = { 960, 540, float(sqrt(2)/2)};
+
+            float random_angle = distribution(generator) * (5 * std::numbers::pi) / 12;
+            random_angle >= 0 ? random_angle = std::numbers::pi - random_angle : ballCoords[2] = -std::numbers::pi - random_angle;
+
+            ballCoords = { 960, 540, random_angle};
         }
 
         if (ballCoords[2] == 2000) {
             score[0] += 1;
-            ballCoords = { 960, 540, float(sqrt(2)/2) };
+
+            float random_angle = distribution(generator) * (5 * std::numbers::pi) / 12;
+
+            ballCoords = { 960, 540, random_angle };
         }
 
         // Colision Checks
