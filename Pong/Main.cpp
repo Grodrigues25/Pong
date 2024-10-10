@@ -1,4 +1,6 @@
+#include <numbers>
 #include <iostream>
+#include <random>
 #include "SFML/Graphics.hpp"
 
 using namespace std;
@@ -16,10 +18,11 @@ using namespace std;
 // TODO: Make the ball stop when it hits the left or right outer limits of the screen (goal) -> DONE
 // TODO: Make the ball reset into the middle of the screen and start a new round -> DONE
 // TODO: Make each bar independent -> DONE
-// TODO: Research threads for paralel processing of inputs of the different bars
+// TODO: Set a minimum bounce angle -> SCRAPPED -> the issue was due to a miscalculation on the inversion of the direction of the bounce on the right bar
+// TODO: Make the starting direction and angle random -> DONE
 
 
-void drawPlayerBar(sf::RenderWindow& window, vector<int> player1Coords, vector<int> player2Coords) {
+void drawPlayerBar(sf::RenderWindow& window, vector<float> player1Coords, vector<float> player2Coords) {
 
     int length = 100;
 
@@ -80,7 +83,7 @@ void drawScoreAndCenterLine(sf::RenderWindow& window, int score[2]) {
 
 }
 
-void drawBall(sf::RenderWindow& window, vector<int> ballCoords, bool colision1, bool colision2) {
+void drawBall(sf::RenderWindow& window, vector<float> ballCoords, bool colision1, bool colision2) {
 
     sf::RectangleShape ball(sf::Vector2f(12, 12));
     ball.setPosition(ballCoords[0], ballCoords[1]);
@@ -92,32 +95,80 @@ void drawBall(sf::RenderWindow& window, vector<int> ballCoords, bool colision1, 
     window.draw(ball);
 }
 
+void updateBarPosition(sf::RenderWindow& window, vector<float>& barCoords) {
+    sf::Vector2f acceleration;
+    sf::Vector2f velocity;
 
-vector<int> ballMovement(vector<int> ballCoords, sf::Time time) {
+    // adjust this at will
+    const float dAcc = 3.3f;
 
-    float speed = 200;
+    // set acceleration
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) { acceleration.y -= dAcc; }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { acceleration.y += dAcc; }
 
-    // Horizontal colision checks
-    if (ballCoords[0] + speed * ballCoords[2] * time.asSeconds() >= 1900) { 
-        ballCoords[2] = 2000;
+    // update velocity through acceleration
+    velocity += acceleration;
+
+    // update position through velocity
+    if (barCoords[1] + velocity.y > 1080) {
+        barCoords[1] = 1080;
     }
-    else if (ballCoords[0] + speed * ballCoords[2] * time.asSeconds() <= 0) {
-        ballCoords[2] = -100;
+    else if (barCoords[1] + velocity.y < 100) {
+        barCoords[1] = 100;
     }
     else {
-        ballCoords[0] += speed * ballCoords[2] * time.asSeconds();
+        barCoords[1] += velocity.y;
     }
 
-    // TOP and BOTTOM colision checks
-    ballCoords[1] + speed * ballCoords[3] * time.asSeconds() <= 1060 && ballCoords[1] + speed * ballCoords[3] * time.asSeconds() >= 0 ? ballCoords[1] += speed * ballCoords[3] * time.asSeconds() : ballCoords[3] = -ballCoords[3];    
-    
-    return ballCoords;
-}
+    // apply damping to the velocity
+    velocity = 0.50f * velocity;
 
-bool ballBarCollision(vector<int> ballDirections, vector<int> playersBarCoords) {
+};
+
+bool ballBarCollision(vector<float> ballDirections, vector<float> playersBarCoords) {
 
     return playersBarCoords[0] < ballDirections[0]+12 && playersBarCoords[0]+20 > ballDirections[0] && playersBarCoords[1]-100 < ballDirections[1]+12 && playersBarCoords[1] > ballDirections[1];
 }
+
+void bounceDirectionCalculation(vector<float>& ballCoords, vector<float> playerBar) {
+
+    float maxBounceAngle = (5 * std::numbers::pi)/12;
+
+    float intersect = (playerBar[1] - 56) - ballCoords[1];
+    intersect = intersect / 56;
+
+    float bounceAngle = intersect * maxBounceAngle;
+
+    ballCoords[2] = bounceAngle;
+
+    cout << (ballCoords[2] * 360) / (2 * std::numbers::pi) << " degrees\n";
+}
+
+void ballMovement(vector<float>& ballCoords, sf::Time time) {
+
+    float speed = 800;
+
+    // Horizontal colision checks
+    if (ballCoords[0] + speed * cos(ballCoords[2]) * time.asSeconds() >= 1900) {
+        ballCoords[2] = 2000;
+    }
+    else if (ballCoords[0] + speed * cos(ballCoords[2]) * time.asSeconds() <= 0) {
+        ballCoords[2] = -100;
+    }
+    else {
+        ballCoords[0] += speed * cos(ballCoords[2]) * time.asSeconds();
+    }
+
+    // TOP and BOTTOM colision checks
+    if (ballCoords[1] + speed * -sin(ballCoords[2]) * time.asSeconds() <= 1060 && ballCoords[1] + speed * -sin(ballCoords[2]) * time.asSeconds() >= 0) {
+        ballCoords[1] += speed * -sin(ballCoords[2]) * time.asSeconds();
+    }
+    else {
+        ballCoords[2] = -ballCoords[2];
+        ballCoords[1] += speed * -sin(ballCoords[2]) * time.asSeconds();
+    }
+}
+
 
 int main() {
 
@@ -125,77 +176,77 @@ int main() {
     int windowWidth = 1920;
     int windowHeight = 1080;
 
-    sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
-
     //RENDER WINDOW
-    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "TicTacToe", sf::Style::Close, settings);
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "TicTacToe", sf::Style::Close);
     sf::RectangleShape background(sf::Vector2f(windowWidth, windowHeight));
     background.setFillColor(sf::Color::Black);
     window.setVerticalSyncEnabled(true);
 
     //GAME DATA STRUCTURES
-    vector<int> player1BarCoords = { 150, 590 };
-    vector<int> player2BarCoords = { 1770, 590 };
-    vector<int> ballCoords = { 960, 540, 1, 1 };
     int score[2] = { 0,0 };
     sf::Clock clock;
     bool bColided1;
     bool bColided2;
     float colisionDelay = 0;
+    float bounceAngle = sqrt(2)/2;
+    vector<float> player1BarCoords = { 150, 590 };
+    vector<float> player2BarCoords = { 1770, 255 };
+    vector<float> ballCoords = { 960, 540, bounceAngle };
+    sf::Event event;
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> distribution(-1, 1);
 
     //WHILE WINDOW IS OPEN LOGIC AKA WHILE THE GAME IS RUNNING
     while (window.isOpen()) {
-        sf::Event event;
 
-        while (window.pollEvent(event)) {
-            switch (event.type) {
-                case sf::Event::Closed:
-                    window.close();
-                    break;
+        //while (window.pollEvent(event)) {
+        window.pollEvent(event);
 
-                case sf::Event::KeyPressed:
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-                        player1BarCoords[1] - 150 < 0 ? player1BarCoords[1] = 100 : player1BarCoords[1] -= 50;
-                    }
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-                        player1BarCoords[1] + 50 > 1080 ? player1BarCoords[1] = 1080 : player1BarCoords[1] += 50;
-                    }
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-                        player2BarCoords[1] - 150 < 0 ? player2BarCoords[1] = 100 : player2BarCoords[1] -= 50;
-                    }
-
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-                        player2BarCoords[1] + 50 > 1080 ? player2BarCoords[1] = 1080 : player2BarCoords[1] += 50;
-                    }
-                    break;
-            }
-            
+        switch (event.type) {
+            case sf::Event::Closed:
+                window.close();
+                break;
         }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { updateBarPosition(window, player1BarCoords); }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { updateBarPosition(window, player2BarCoords); };
 
         colisionDelay += clock.getElapsedTime().asSeconds();
         sf::Time elapsed = clock.restart();
 
-        ballCoords = ballMovement(ballCoords, elapsed);
-
         // Goal Scored Checks
         if (ballCoords[2] == -100) { 
             score[1] += 1; 
-            ballCoords = { 960, 540, 1, 1 };
+
+            float random_angle = distribution(generator) * (5 * std::numbers::pi) / 12;
+            random_angle >= 0 ? random_angle = std::numbers::pi - random_angle : ballCoords[2] = -std::numbers::pi - random_angle;
+
+            ballCoords = { 960, 540, random_angle};
         }
 
         if (ballCoords[2] == 2000) {
             score[0] += 1;
-            ballCoords = { 960, 540, 1, 1 };
+
+            float random_angle = distribution(generator) * (5 * std::numbers::pi) / 12;
+
+            ballCoords = { 960, 540, random_angle };
         }
 
         // Colision Checks
         bColided1 = ballBarCollision(ballCoords, player1BarCoords);
         bColided2 = ballBarCollision(ballCoords, player2BarCoords);
-        if ((bColided1 || bColided2) && colisionDelay > 1) { ballCoords[2] = -ballCoords[2]; colisionDelay = 0; }
+        if (bColided1  && colisionDelay > 1) { 
+            colisionDelay = 0; 
+            bounceDirectionCalculation(ballCoords, player1BarCoords);
+        }
+
+        if (bColided2 && colisionDelay > 1) {
+            colisionDelay = 0;
+            bounceDirectionCalculation(ballCoords, player2BarCoords);
+            ballCoords[2] >= 0 ? ballCoords[2] = std::numbers::pi - ballCoords[2] : ballCoords[2] = -std::numbers::pi -ballCoords[2];
+        }
+
+        ballMovement(ballCoords, elapsed);
 
         // Rendering
         window.clear();
