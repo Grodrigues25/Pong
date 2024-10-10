@@ -20,7 +20,6 @@ using namespace std;
 // TODO: Make each bar independent -> DONE
 // TODO: Set a minimum bounce angle -> SCRAPPED -> the issue was due to a miscalculation on the inversion of the direction of the bounce on the right bar
 // TODO: Make the starting direction and angle random -> DONE
-// TODO: Make the ball start slower after a goal is scored -> 
 
 
 void drawPlayerBar(sf::RenderWindow& window, vector<float> player1Coords, vector<float> player2Coords) {
