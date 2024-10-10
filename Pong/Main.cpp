@@ -20,6 +20,7 @@ using namespace std;
 // TODO: Make each bar independent -> DONE
 // TODO: Set a minimum bounce angle -> SCRAPPED -> the issue was due to a miscalculation on the inversion of the direction of the bounce on the right bar
 // TODO: Make the starting direction and angle random -> DONE
+// TODO: Make the ball start slower after a goal is scored -> 
 
 
 void drawPlayerBar(sf::RenderWindow& window, vector<float> player1Coords, vector<float> player2Coords) {
@@ -130,7 +131,7 @@ bool ballBarCollision(vector<float> ballDirections, vector<float> playersBarCoor
     return playersBarCoords[0] < ballDirections[0]+12 && playersBarCoords[0]+20 > ballDirections[0] && playersBarCoords[1]-100 < ballDirections[1]+12 && playersBarCoords[1] > ballDirections[1];
 }
 
-vector<float> bounceDirectionCalculation(vector<float> ballCoords, vector<float> playerBar) {
+void bounceDirectionCalculation(vector<float>& ballCoords, vector<float> playerBar) {
 
     float maxBounceAngle = (5 * std::numbers::pi)/12;
 
@@ -142,11 +143,9 @@ vector<float> bounceDirectionCalculation(vector<float> ballCoords, vector<float>
     ballCoords[2] = bounceAngle;
 
     cout << (ballCoords[2] * 360) / (2 * std::numbers::pi) << " degrees\n";
-
-    return ballCoords;
 }
 
-vector<float> ballMovement(vector<float> ballCoords, sf::Time time) {
+void ballMovement(vector<float>& ballCoords, sf::Time time) {
 
     float speed = 800;
 
@@ -169,8 +168,6 @@ vector<float> ballMovement(vector<float> ballCoords, sf::Time time) {
         ballCoords[2] = -ballCoords[2];
         ballCoords[1] += speed * -sin(ballCoords[2]) * time.asSeconds();
     }
-
-    return ballCoords;
 }
 
 
@@ -241,16 +238,16 @@ int main() {
         bColided2 = ballBarCollision(ballCoords, player2BarCoords);
         if (bColided1  && colisionDelay > 1) { 
             colisionDelay = 0; 
-            ballCoords = bounceDirectionCalculation(ballCoords, player1BarCoords);
+            bounceDirectionCalculation(ballCoords, player1BarCoords);
         }
 
         if (bColided2 && colisionDelay > 1) {
             colisionDelay = 0;
-            ballCoords = bounceDirectionCalculation(ballCoords, player2BarCoords);
+            bounceDirectionCalculation(ballCoords, player2BarCoords);
             ballCoords[2] >= 0 ? ballCoords[2] = std::numbers::pi - ballCoords[2] : ballCoords[2] = -std::numbers::pi -ballCoords[2];
         }
 
-        ballCoords = ballMovement(ballCoords, elapsed);
+        ballMovement(ballCoords, elapsed);
 
         // Rendering
         window.clear();
